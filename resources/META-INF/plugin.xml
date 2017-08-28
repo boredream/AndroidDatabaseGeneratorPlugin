@@ -1,0 +1,37 @@
+<idea-plugin version="2">
+  <id>com.boredream.plugin.dbgen</id>
+  <name>Android Database Generator</name>
+  <version>1.0</version>
+  <vendor email="48262906@qq.com" url="https://github.com/boredream">BoreDream</vendor>
+
+  <description><![CDATA[
+      auto generate db code, such as Table / CRUD sql ...
+    ]]></description>
+
+  <change-notes><![CDATA[
+      1.0 init
+    ]]>
+  </change-notes>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+  <idea-version since-build="141.0"/>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+       on how to target different products -->
+  <!-- uncomment to enable plugin in all products
+  <depends>com.intellij.modules.lang</depends>
+  -->
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- Add your extensions here -->
+  </extensions>
+
+  <actions>
+    <!-- Add your actions here -->
+    <action id="DatabaseGenerator.GenAction" class="DatabaseGenerateAction" text="Database Generator"
+            description="auto generate db code, such as Table / CRUD sql ...">
+      <add-to-group group-id="CodeMenu" anchor="last"/>
+    </action>
+  </actions>
+
+</idea-plugin>
