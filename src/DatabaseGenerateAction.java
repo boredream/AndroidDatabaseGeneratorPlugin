@@ -5,7 +5,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
-import utils.DbUtils;
+import core.DatabaseGenerator;
 import utils.PluginUtils;
 
 public class DatabaseGenerateAction extends AnAction {
@@ -17,9 +17,7 @@ public class DatabaseGenerateAction extends AnAction {
         PsiClass clazz = PluginUtils.getFileClass(file);
 
         WriteCommandAction.runWriteCommandAction(project, () -> {
-            DbUtils.genCode(file, clazz);
+            DatabaseGenerator.genCode(file, clazz);
         });
-
-//        DbUtils.genCreateTableCode(clazz);
     }
 }
