@@ -26,8 +26,6 @@
     <!-- Add your extensions here -->
   </extensions>
 
-  <depends>com.intellij.modules.androidstudio</depends>
-
   <actions>
     <!-- Add your actions here -->
     <action id="DatabaseGenerator.GenAction" class="DatabaseGenerateAction" text="Database Generator"
