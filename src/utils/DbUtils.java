@@ -40,21 +40,19 @@ public class DbUtils {
     private static void genHelperFile(PsiClass clazz, Project project, VirtualFile dbDir) {
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
 
-        PsiFile psiFile;
         String name = "DatabaseHelper.java";
         VirtualFile virtualFile = dbDir.findChild(name);
         if(virtualFile == null) {
             // 没有就创建一个，第一次使用代码字符串创建个类
-            psiFile = PsiFileFactory.getInstance(project).createFileFromText(
+            PsiFile initFile = PsiFileFactory.getInstance(project).createFileFromText(
                     name, JavaFileType.INSTANCE, CodeGenerator.genSqliteOpenHelperInitCode(dbDir));
 
             // 加到db目录下
-            PsiManager.getInstance(project).findDirectory(dbDir).add(psiFile);
-        } else {
-            // 已有，直接转换类型
-            psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+            PsiManager.getInstance(project).findDirectory(dbDir).add(initFile);
+            virtualFile = dbDir.findChild(name);
         }
 
+        PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
         // 用拼接的代码生成create table方法
         String createTableCode = CodeGenerator.genCreateTableCode(clazz);
         PsiMethod createTableMethod = factory.createMethodFromText(createTableCode, psiFile);
@@ -65,27 +63,25 @@ public class DbUtils {
     private static void genColumnFile(PsiClass clazz, Project project, VirtualFile dbDir) {
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
 
-        PsiFile psiFile;
         String name = "DataContract.java";
         VirtualFile virtualFile = dbDir.findChild(name);
         if(virtualFile == null) {
             // 没有就创建一个，第一次使用代码字符串创建个类
-            psiFile = PsiFileFactory.getInstance(project).createFileFromText(
+            PsiFile initFile = PsiFileFactory.getInstance(project).createFileFromText(
                     name, JavaFileType.INSTANCE, CodeGenerator.genDataContractInitCode(dbDir));
 
             // 加到db目录下
-            PsiManager.getInstance(project).findDirectory(dbDir).add(psiFile);
-        } else {
-            // 已有，直接转换类型
-            psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+            PsiManager.getInstance(project).findDirectory(dbDir).add(initFile);
+            virtualFile = dbDir.findChild(name);
         }
 
-        // TODO: 2017/8/30 import BaseColumns
+        PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
         // 用拼接的代码生成Columns Class
         String beanColumnsCode = CodeGenerator.genBeanColumnsCode(clazz);
         PsiClass beanColumnsClass = factory.createClassFromText(beanColumnsCode, psiFile);
         // 将创建的class添加到DataContract Class中
-        PluginUtils.getFileClass(psiFile).add(beanColumnsClass.getInnerClasses()[0]);
+        PsiClass fileClass = PluginUtils.getFileClass(psiFile);
+        fileClass.add(beanColumnsClass.getInnerClasses()[0]);
     }
 
     private static ClassInfo.ClassField getPrimaryKey(ClassInfo info) {

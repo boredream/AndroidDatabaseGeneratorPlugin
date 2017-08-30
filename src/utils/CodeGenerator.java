@@ -136,6 +136,8 @@ public class CodeGenerator {
     public static String genDataContractInitCode(VirtualFile dir) {
         return StringUtils.formatSingleLine(0, "package " + AndroidUtils.getFilePackagePath(dir) + ";") +
                 "\n" +
+                StringUtils.formatSingleLine(0, "import android.provider.BaseColumns;") +
+                "\n" +
                 StringUtils.formatSingleLine(0, "public final class DataContract {") +
                 "\n" +
                 StringUtils.formatSingleLine(1, "private DataContract() {") +
