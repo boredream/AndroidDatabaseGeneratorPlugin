@@ -17,9 +17,9 @@ public class DatabaseGenerateAction extends AnAction {
         PsiClass clazz = PluginUtils.getFileClass(file);
 
         WriteCommandAction.runWriteCommandAction(project, () -> {
-            DbUtils.genColumnCode(file, clazz);
+            DbUtils.genCode(file, clazz);
         });
 
-//        DbUtils.genTableCode(clazz);
+//        DbUtils.genCreateTableCode(clazz);
     }
 }

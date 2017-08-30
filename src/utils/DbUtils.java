@@ -10,9 +10,8 @@ import java.io.IOException;
 
 public class DbUtils {
 
-    public static void genColumnCode(PsiFile file, PsiClass clazz) {
+    public static void genCode(PsiFile file, PsiClass clazz) {
         Project project = file.getProject();
-        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
 
         // app包名根目录 ...\app\src\main\java\PACKAGE_NAME\
         VirtualFile baseDir = AndroidUtils.getAppPackageBaseDir(project);
@@ -28,106 +27,65 @@ public class DbUtils {
             }
         }
 
-        // 所有的数据库字段都统一的存在db目录下的DataContract类中
+        // SqliteOpenHelper类
+        genHelperFile(clazz, project, dbDir);
+
+        // 数据类对应的Columns字段都统一的存在DataContract类中
+        genColumnFile(clazz, project, dbDir);
+
+        // 为每个数据类创建一个Dao类，包含基本的CRUD方法
+
+    }
+
+    private static void genHelperFile(PsiClass clazz, Project project, VirtualFile dbDir) {
+        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
+
         PsiFile psiFile;
-        String contractFileName = "DataContract.java";
-        VirtualFile contractFile = dbDir.findChild(contractFileName);
-        if(contractFile == null) {
+        String name = "DatabaseHelper.java";
+        VirtualFile virtualFile = dbDir.findChild(name);
+        if(virtualFile == null) {
             // 没有就创建一个，第一次使用代码字符串创建个类
             psiFile = PsiFileFactory.getInstance(project).createFileFromText(
-                    contractFileName, JavaFileType.INSTANCE, CodeGenerator.genDataContractInitCode(dbDir));
+                    name, JavaFileType.INSTANCE, CodeGenerator.genSqliteOpenHelperInitCode(dbDir));
 
             // 加到db目录下
             PsiManager.getInstance(project).findDirectory(dbDir).add(psiFile);
         } else {
-            psiFile = PsiManager.getInstance(project).findFile(contractFile);
+            // 已有，直接转换类型
+            psiFile = PsiManager.getInstance(project).findFile(virtualFile);
         }
 
-        // TODO: 2017/8/29  
-        
-        // 在DataContract类中添加数据类字段内部类
-        PsiClass contractClass = PluginUtils.getFileClass(psiFile);
-        String beanColumnsCode = CodeGenerator.genJavaBeanColumnsCode(clazz);
-        PsiClass beanColumnsClass = factory.createClassFromText(beanColumnsCode, clazz);
-        beanColumnsClass.setName(clazz.getName());
-        contractClass.add(beanColumnsClass);
-
-        PsiReferenceList implementsList = clazz.getExtendsList();
-        if (implementsList != null) {
-            PsiJavaCodeReferenceElement[] referenceElements = implementsList.getReferenceElements();
-            boolean hasImpl = false;
-            for (PsiJavaCodeReferenceElement re : referenceElements) {
-                hasImpl = re.getText().contains("OnClickListener");
-            }
-            // add implement if not exist
-            if (!hasImpl) {
-                PsiJavaCodeReferenceElement pjcre = factory.createReferenceElementByFQClassName(
-                        "android.view.View.OnClickListener", clazz.getResolveScope());
-                implementsList.add(pjcre);
-            }
-        }
-
-        System.out.println(clazz.getExtendsList());
+        // 用拼接的代码生成create table方法
+        String createTableCode = CodeGenerator.genCreateTableCode(clazz);
+        PsiMethod createTableMethod = factory.createMethodFromText(createTableCode, psiFile);
+        // 将创建的method添加到DatabaseHelper Class中
+        PluginUtils.getFileClass(psiFile).add(createTableMethod);
     }
 
-    /**
-     * 生成数据库表单代码
-     *
-     * <pre>
-     * String sql = "CREATE TABLE IF NOT EXISTS "
-     *        DataContract.USER.TABLE_NAME + "("
-     *        DataContract.USER._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-     *        DataContract.USER.USERNAME + " TEXT,"
-     *        DataContract.USER.IS_MALE + " TEXT,"
-     *        DataContract.USER.AGE + " TEXT"
-     *        + ")";
-     * </pre>
-     */
-    public static void genTableCode(PsiClass clazz) {
-        String tableName = "DataContract." + clazz.getName().toUpperCase();
+    private static void genColumnFile(PsiClass clazz, Project project, VirtualFile dbDir) {
+        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
 
-        StringBuilder sbTable = new StringBuilder();
-        sbTable.append(StringUtils.formatSingleLine(0, "String sql = \"CREATE TABLE IF NOT EXISTS \""));
-        sbTable.append(StringUtils.formatSingleLine(2, tableName + ".TABLE_NAME + \"(\""));
-        sbTable.append(StringUtils.formatSingleLine(2, tableName + "._ID + \" INTEGER PRIMARY KEY AUTOINCREMENT,\""));
+        PsiFile psiFile;
+        String name = "DataContract.java";
+        VirtualFile virtualFile = dbDir.findChild(name);
+        if(virtualFile == null) {
+            // 没有就创建一个，第一次使用代码字符串创建个类
+            psiFile = PsiFileFactory.getInstance(project).createFileFromText(
+                    name, JavaFileType.INSTANCE, CodeGenerator.genDataContractInitCode(dbDir));
 
-        for (PsiField field : clazz.getFields()) {
-            String name = getColumnString(field);
-            String type = parseDbType(field);
-            sbTable.append(StringUtils.formatSingleLine(2, tableName + "." + name + " + \" " + type + ",\""));
+            // 加到db目录下
+            PsiManager.getInstance(project).findDirectory(dbDir).add(psiFile);
+        } else {
+            // 已有，直接转换类型
+            psiFile = PsiManager.getInstance(project).findFile(virtualFile);
         }
-        sbTable.replace(sbTable.lastIndexOf(",\""), sbTable.lastIndexOf(",\"") + 2, "\"\n\t\t+ \")\";");
-        System.out.println(sbTable.toString());
-    }
 
-    /**
-     * 将基础类型等转为数据库对应的数据类型
-     * (boolean和date都作为字符类型处理)
-     */
-    private static String parseDbType(PsiField field) {
-        String type;
-        switch (field.getName()) {
-            case "int":
-            case "Integer":
-            case "long":
-            case "Long":
-                type = "INTEGER";
-                break;
-            case "float":
-            case "Float":
-            case "double":
-            case "Double":
-                type = "REAL";
-                break;
-            case "boolean":
-            case "Boolean":
-                type = "INTEGER";
-                break;
-            default:
-                type = "TEXT";
-                break;
-        }
-        return type;
+        // TODO: 2017/8/30 import BaseColumns
+        // 用拼接的代码生成Columns Class
+        String beanColumnsCode = CodeGenerator.genBeanColumnsCode(clazz);
+        PsiClass beanColumnsClass = factory.createClassFromText(beanColumnsCode, psiFile);
+        // 将创建的class添加到DataContract Class中
+        PluginUtils.getFileClass(psiFile).add(beanColumnsClass.getInnerClasses()[0]);
     }
 
     private static ClassInfo.ClassField getPrimaryKey(ClassInfo info) {
