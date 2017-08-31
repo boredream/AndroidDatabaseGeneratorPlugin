@@ -11,8 +11,8 @@ import utils.PluginUtils;
 public class DatabaseGenerateAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
+        Project project = e.getData(PlatformDataKeys.PROJECT);
         PsiFile file = e.getData(PlatformDataKeys.PSI_FILE);
-        Project project = file.getProject();
 
         PsiClass clazz = PluginUtils.getFileClass(file);
 

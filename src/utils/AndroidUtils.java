@@ -41,9 +41,9 @@ public class AndroidUtils {
         return xml.getRootTag().getAttribute("package").getValue();
     }
 
-    public static String getFilePackagePath(VirtualFile dir) {
+    public static String getFilePackageName(VirtualFile dir) {
         if(!dir.isDirectory()) {
-            // 非目录的取目录路径
+            // 非目录的取所在文件夹路径
             dir = dir.getParent();
         }
         String path = dir.getPath().replace("/", ".");

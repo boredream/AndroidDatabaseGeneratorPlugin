@@ -51,7 +51,7 @@ public class CodeFactory {
      * </pre>
      */
     public static String genSqliteOpenHelperInitCode(VirtualFile dir) {
-        return StringUtils.formatSingleLine(0, "package " + AndroidUtils.getFilePackagePath(dir) + ";") +
+        return StringUtils.formatSingleLine(0, "package " + AndroidUtils.getFilePackageName(dir) + ";") +
                 "\n" +
                 StringUtils.formatSingleLine(0, "import android.database.sqlite.SQLiteDatabase;") +
                 StringUtils.formatSingleLine(0, "import android.database.sqlite.SQLiteOpenHelper;") +
@@ -137,7 +137,7 @@ public class CodeFactory {
      * </pre>
      */
     public static String genDataContractInitCode(VirtualFile dir) {
-        return StringUtils.formatSingleLine(0, "package " + AndroidUtils.getFilePackagePath(dir) + ";") +
+        return StringUtils.formatSingleLine(0, "package " + AndroidUtils.getFilePackageName(dir) + ";") +
                 "\n" +
                 StringUtils.formatSingleLine(0, "import android.provider.BaseColumns;") +
                 "\n" +
@@ -180,12 +180,14 @@ public class CodeFactory {
         String daoClassName = clazz.getName() + "Dao";
 
         StringBuilder sb = new StringBuilder();
-        sb.append(StringUtils.formatSingleLine(0, "package " + AndroidUtils.getFilePackagePath(dir) + ";"));
+        sb.append(StringUtils.formatSingleLine(0, "package " + AndroidUtils.getFilePackageName(dir) + ";"));
         sb.append("\n");
         sb.append(StringUtils.formatSingleLine(0, "import android.content.ContentValues;"));
         sb.append(StringUtils.formatSingleLine(0, "import android.database.Cursor;"));
         sb.append(StringUtils.formatSingleLine(0, "import android.database.sqlite.SQLiteDatabase;"));
         sb.append(StringUtils.formatSingleLine(0, "import android.database.sqlite.SQLiteStatement;"));
+        String dataPackageText = AndroidUtils.getFilePackageName(clazz.getContainingFile().getVirtualFile()) + "." + clazz.getName();
+        sb.append(StringUtils.formatSingleLine(0, "import " + dataPackageText + ";"));
         sb.append("\n");
         sb.append(StringUtils.formatSingleLine(0, "import java.util.ArrayList;"));
         sb.append("\n");

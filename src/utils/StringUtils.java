@@ -1,7 +1,6 @@
 package utils;
 
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 public class StringUtils {
 	
@@ -23,14 +22,6 @@ public class StringUtils {
 	
 	public static String firstToUpperCase(String key) {
 		return key.substring(0, 1).toUpperCase(Locale.getDefault()) + key.substring(1);
-	}
-	
-	public static String gapToCamel(String src) {
-		StringBuilder sb = new StringBuilder();
-		for(String s : src.trim().split(" ")) {
-			sb.append(firstToUpperCase(s));
-		}
-		return sb.toString();
 	}
 
 	/**
@@ -63,15 +54,5 @@ public class StringUtils {
 		}
 
 		return sb.toString();
-	}
-
-	public static boolean hasChinese(String s) {
-		String regexChinese = "[\u4e00-\u9fa5]+";
-		Pattern patternChinese = Pattern.compile(regexChinese);
-		return patternChinese.matcher(s).find();
-	}
-
-	public static boolean isEmpty(String s) {
-		return s == null || s.length() == 0;
 	}
 }

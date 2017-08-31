@@ -39,8 +39,6 @@ public class DatabaseGenerator {
     }
 
     private static void genHelperFile(PsiClass clazz, Project project, VirtualFile dbDir) {
-        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
-
         String name = "DatabaseHelper.java";
         VirtualFile virtualFile = dbDir.findChild(name);
         if(virtualFile == null) {
@@ -56,18 +54,17 @@ public class DatabaseGenerator {
         PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
         // 用拼接的代码生成create table方法
         String createTableCode = CodeFactory.genCreateTableCode(clazz);
+        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiMethod createTableMethod = factory.createMethodFromText(createTableCode, psiFile);
         // 将创建的method添加到DatabaseHelper Class中
         PsiClass fileClass = PluginUtils.getFileClass(psiFile);
         fileClass.add(createTableMethod);
-        // 在类中的onCreate方法中调用create table方法
+        // 在DatabaseHelper类中的onCreate方法里，添加create table方法的调用语句
         PsiMethod onCreateMethod = fileClass.findMethodsByName("onCreate", false)[0];
         onCreateMethod.getBody().add(factory.createStatementFromText(createTableMethod.getName() + "(db);", fileClass));
     }
 
     private static void genColumnFile(PsiClass clazz, Project project, VirtualFile dbDir) {
-        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
-
         String name = "DataContract.java";
         VirtualFile virtualFile = dbDir.findChild(name);
         if(virtualFile == null) {
@@ -83,6 +80,7 @@ public class DatabaseGenerator {
         PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
         // 用拼接的代码生成Columns Class
         String beanColumnsCode = CodeFactory.genBeanColumnsCode(clazz);
+        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiClass beanColumnsClass = factory.createClassFromText(beanColumnsCode, psiFile);
         // 将创建的class添加到DataContract Class中
         PsiClass fileClass = PluginUtils.getFileClass(psiFile);
