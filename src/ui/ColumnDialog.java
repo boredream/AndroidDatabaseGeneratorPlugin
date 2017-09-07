@@ -26,6 +26,7 @@ public class ColumnDialog extends JDialog {
     private JPanel list;
     private JPanel footer;
     private JCheckBox cbAll;
+    private JCheckBox cbPrimaryKey;
 
     public ColumnDialog(PsiClass clazz) {
         UiUtils.centerDialog(this, 600, 400);
@@ -40,6 +41,7 @@ public class ColumnDialog extends JDialog {
         createHeader();
 
         // list
+        createItem(null); // default _ID
         for (PsiField field : clazz.getFields()) {
             createItem(field);
         }
@@ -86,6 +88,7 @@ public class ColumnDialog extends JDialog {
     }
 
     private ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
+    private ButtonGroup buttonGroup = new ButtonGroup();
     private void createItem(PsiField field) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
@@ -96,27 +99,31 @@ public class ColumnDialog extends JDialog {
         JCheckBox checkBox1 = new JCheckBox();
         checkBox1.setPreferredSize(new Dimension(40, ITEM_HEIGHT));
         checkBox1.setSelected(true);
-        checkBoxes.add(checkBox1);
-        checkBox1.addChangeListener(e -> {
-            boolean checkAll = true;
-            for (JCheckBox checkBox : checkBoxes) {
-                if(!checkBox.isSelected()) {
-                    checkAll = false;
-                    break;
-                }
-            }
-            cbAll.setSelected(checkAll);
-        });
+        if(field != null) {
+            checkBoxes.add(checkBox1);
+        } else {
+            checkBox1.setEnabled(false);
+        }
         panel.add(checkBox1);
 
-        JLabel label2 = new JLabel(field.getName());
+        JLabel label2 = new JLabel();
+        if(field != null) {
+            label2.setText(field.getName());
+        } else {
+            label2.setText("_ID [default]");
+            label2.setEnabled(false);
+        }
         label2.setPreferredSize(new Dimension(80, ITEM_HEIGHT));
         panel.add(label2);
 
         panel.add(Box.createHorizontalGlue());
 
-        JCheckBox checkBox3 = new JCheckBox();
-        panel.add(checkBox3);
+        JRadioButton radioButton = new JRadioButton();
+        buttonGroup.add(radioButton);
+        if(field == null) {
+            radioButton.setSelected(true);
+        }
+        panel.add(radioButton);
 
         panel.add(Box.createHorizontalStrut(10));
 
