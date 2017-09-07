@@ -18,7 +18,6 @@ public class DatabaseGenerateAction extends AnAction {
         ColumnDialog dialog = new ColumnDialog(clazz);
         dialog.pack();
         dialog.setVisible(true);
-        dialog.setLocationRelativeTo(null);
 
 //        WriteCommandAction.runWriteCommandAction(project, () -> {
 //            DatabaseGenerator.genCode(file, clazz);
