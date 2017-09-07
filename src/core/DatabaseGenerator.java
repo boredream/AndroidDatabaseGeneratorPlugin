@@ -8,10 +8,11 @@ import utils.AndroidUtils;
 import utils.PluginUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class DatabaseGenerator {
 
-    public static void genCode(PsiFile file, PsiClass clazz) {
+    public static void genCode(PsiFile file, PsiClass clazz, ArrayList<PsiField> fields, PsiField priKeyField) {
         Project project = file.getProject();
 
         // app包名根目录 ...\app\src\main\java\PACKAGE_NAME\
@@ -29,16 +30,18 @@ public class DatabaseGenerator {
         }
 
         // SqliteOpenHelper类
-        genHelperFile(clazz, project, dbDir);
+        genHelperFile(clazz, fields, priKeyField, project, dbDir);
 
         // 数据类对应的Columns字段都统一的存在DataContract类中
-        genColumnFile(clazz, project, dbDir);
+        genColumnFile(clazz, fields, project, dbDir);
 
+        // TODO: 2017/9/7
         // 为每个数据类创建一个Dao类，包含基本的CRUD方法
         genDaoCode(clazz, project, dbDir);
     }
 
-    private static void genHelperFile(PsiClass clazz, Project project, VirtualFile dbDir) {
+    private static void genHelperFile(PsiClass clazz, ArrayList<PsiField> fields, PsiField priKeyField,
+                                      Project project, VirtualFile dbDir) {
         String name = "DatabaseHelper.java";
         VirtualFile virtualFile = dbDir.findChild(name);
         if(virtualFile == null) {
@@ -53,7 +56,7 @@ public class DatabaseGenerator {
 
         PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
         // 用拼接的代码生成create table方法
-        String createTableCode = CodeFactory.genCreateTableCode(clazz);
+        String createTableCode = CodeFactory.genCreateTableCode(clazz, fields, priKeyField);
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiMethod createTableMethod = factory.createMethodFromText(createTableCode, psiFile);
         // 将创建的method添加到DatabaseHelper Class中
@@ -64,7 +67,7 @@ public class DatabaseGenerator {
         onCreateMethod.getBody().add(factory.createStatementFromText(createTableMethod.getName() + "(db);", fileClass));
     }
 
-    private static void genColumnFile(PsiClass clazz, Project project, VirtualFile dbDir) {
+    private static void genColumnFile(PsiClass clazz, ArrayList<PsiField> fields, Project project, VirtualFile dbDir) {
         String name = "DataContract.java";
         VirtualFile virtualFile = dbDir.findChild(name);
         if(virtualFile == null) {
@@ -79,7 +82,7 @@ public class DatabaseGenerator {
 
         PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
         // 用拼接的代码生成Columns Class
-        String beanColumnsCode = CodeFactory.genBeanColumnsCode(clazz);
+        String beanColumnsCode = CodeFactory.genBeanColumnsCode(clazz, fields);
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiClass beanColumnsClass = factory.createClassFromText(beanColumnsCode, psiFile);
         // 将创建的class添加到DataContract Class中

@@ -2,22 +2,22 @@ package ui;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
-import com.intellij.ui.GuiUtils;
-import sun.plugin.util.UIUtil;
+import com.sun.deploy.panel.RadioPropertyGroup;
 import utils.UiUtils;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.ActionListener;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class ColumnDialog extends JDialog {
 
     public static final int ITEM_HEIGHT = 25;
+
+    private PsiClass clazz;
 
     private JPanel contentPane;
     private JButton buttonOK;
@@ -26,7 +26,6 @@ public class ColumnDialog extends JDialog {
     private JPanel list;
     private JPanel footer;
     private JCheckBox cbAll;
-    private JCheckBox cbPrimaryKey;
 
     public ColumnDialog(PsiClass clazz) {
         UiUtils.centerDialog(this, 600, 400);
@@ -35,35 +34,24 @@ public class ColumnDialog extends JDialog {
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
 
+        this.clazz = clazz;
+
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 
         // header
         createHeader();
 
         // list
-        createItem(null); // default _ID
-        for (PsiField field : clazz.getFields()) {
-            createItem(field);
+        createItem(-1); // default _ID
+        for (int i = 0; i < clazz.getFields().length; i++) {
+            createItem(i);
         }
 
         // footer
         createFooter();
 
-        buttonOK.addActionListener(e -> onOK());
-        buttonCancel.addActionListener(e -> onCancel());
-
-// call onCancel() when cross is clicked
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                onCancel();
-            }
-        });
-
-// call onCancel() on ESCAPE
-        contentPane.registerKeyboardAction(e -> onCancel(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-                JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        buttonOK.addActionListener(e -> performGenerate());
+        buttonCancel.addActionListener(e -> dispose());
     }
 
     private void createHeader() {
@@ -89,7 +77,8 @@ public class ColumnDialog extends JDialog {
 
     private ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
     private ButtonGroup buttonGroup = new ButtonGroup();
-    private void createItem(PsiField field) {
+    private int priKeyPosition;
+    private void createItem(int position) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, ITEM_HEIGHT));
@@ -99,7 +88,7 @@ public class ColumnDialog extends JDialog {
         JCheckBox checkBox1 = new JCheckBox();
         checkBox1.setPreferredSize(new Dimension(40, ITEM_HEIGHT));
         checkBox1.setSelected(true);
-        if(field != null) {
+        if(position >= 0) {
             checkBoxes.add(checkBox1);
         } else {
             checkBox1.setEnabled(false);
@@ -107,8 +96,8 @@ public class ColumnDialog extends JDialog {
         panel.add(checkBox1);
 
         JLabel label2 = new JLabel();
-        if(field != null) {
-            label2.setText(field.getName());
+        if(position >= 0) {
+            label2.setText(clazz.getFields()[position].getName());
         } else {
             label2.setText("_ID [default]");
             label2.setEnabled(false);
@@ -119,8 +108,13 @@ public class ColumnDialog extends JDialog {
         panel.add(Box.createHorizontalGlue());
 
         JRadioButton radioButton = new JRadioButton();
+        radioButton.addChangeListener(e -> {
+            if(radioButton.isSelected()) {
+                priKeyPosition = position;
+            }
+        });
         buttonGroup.add(radioButton);
-        if(field == null) {
+        if(position == -1) {
             radioButton.setSelected(true);
         }
         panel.add(radioButton);
@@ -144,13 +138,32 @@ public class ColumnDialog extends JDialog {
         footer.add(cbAll);
     }
 
-    private void onOK() {
-// add your code here
+    private void performGenerate() {
+        ArrayList<PsiField> fields = new ArrayList<>();
+        PsiField priKeyField = null;
+        for (int i = 0; i < checkBoxes.size(); i++) {
+            if(checkBoxes.get(i).isSelected()) {
+                fields.add(clazz.getFields()[i]);
+                if(i == priKeyPosition) {
+                    priKeyField = clazz.getFields()[i];
+                }
+            }
+            buttonGroup.getSelection();
+        }
+
+        if(onGenerateListener != null) {
+            onGenerateListener.onGenerate(fields, priKeyField);
+        }
         dispose();
     }
 
-    private void onCancel() {
-// add your code here if necessary
-        dispose();
+    private OnGenerateListener onGenerateListener;
+
+    public void setOnGenerateListener(OnGenerateListener onGenerateListener) {
+        this.onGenerateListener = onGenerateListener;
+    }
+
+    public interface OnGenerateListener {
+        void onGenerate(ArrayList<PsiField> fields, PsiField priKeyField);
     }
 }

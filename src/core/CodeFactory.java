@@ -7,6 +7,8 @@ import com.intellij.psi.PsiType;
 import utils.AndroidUtils;
 import utils.StringUtils;
 
+import java.util.ArrayList;
+
 public class CodeFactory {
 
     /**
@@ -103,19 +105,29 @@ public class CodeFactory {
      *        + ")";
      * </pre>
      */
-    public static String genCreateTableCode(PsiClass clazz) {
+    public static String genCreateTableCode(PsiClass clazz, ArrayList<PsiField> fields, PsiField priKeyField) {
         String tableName = "DataContract." + clazz.getName();
 
         StringBuilder sb = new StringBuilder();
         sb.append(StringUtils.formatSingleLine(0, "public void create" + clazz.getName() + "Table(SQLiteDatabase db) {"));
         sb.append(StringUtils.formatSingleLine(1, "String sql = \"CREATE TABLE IF NOT EXISTS \""));
         sb.append(StringUtils.formatSingleLine(3, "+ " + tableName + ".TABLE_NAME + \"(\""));
-        sb.append(StringUtils.formatSingleLine(3, "+ " + tableName + "._ID + \" INTEGER PRIMARY KEY AUTOINCREMENT,\""));
+        if(priKeyField == null) {
+            // 默认主键
+            sb.append(StringUtils.formatSingleLine(3, "+ " + tableName + "._ID + \" INTEGER PRIMARY KEY AUTOINCREMENT,\""));
+        } else {
+            sb.append(StringUtils.formatSingleLine(3, "+ " + tableName + "._ID + \" INTEGER AUTOINCREMENT,\""));
+        }
 
-        for (PsiField field : clazz.getFields()) {
+        for (PsiField field : fields) {
             String name = getColumnString(field);
             String type = parseDbType(field);
-            sb.append(StringUtils.formatSingleLine(3, "+ " + tableName + "." + name + " + \" " + type + ",\""));
+            if(priKeyField != null && priKeyField.getName().equals(field.getName())) {
+                // 有自定义主键
+                sb.append(StringUtils.formatSingleLine(3, "+ " + tableName + "." + name + " + \" " + type + " PRIMARY KEY,\""));
+            } else {
+                sb.append(StringUtils.formatSingleLine(3, "+ " + tableName + "." + name + " + \" " + type + ",\""));
+            }
         }
         sb.replace(sb.lastIndexOf(",\""), sb.lastIndexOf(",\"") + 2, "\"\n\t\t+ \")\";");
         sb.append(StringUtils.formatSingleLine(1, "db.execSQL(sql);"));
@@ -160,11 +172,11 @@ public class CodeFactory {
      * String AGE = "age";
      * </pre>
      */
-    public static String genBeanColumnsCode(PsiClass clazz) {
+    public static String genBeanColumnsCode(PsiClass clazz, ArrayList<PsiField> fields) {
         StringBuilder sb = new StringBuilder();
         sb.append(StringUtils.formatSingleLine(0, "public interface " + clazz.getName() + " extends BaseColumns {"));
         sb.append(StringUtils.formatSingleLine(1, "String TABLE_NAME = \"" + StringUtils.camel2underline(clazz.getName()) + "\";"));
-        for (PsiField field : clazz.getFields()) {
+        for (PsiField field : fields) {
             String name = StringUtils.camel2underline(field.getName()).toUpperCase();
             String value = name.toLowerCase();
             sb.append(StringUtils.formatSingleLine(1, "String " + name + " = \"" + value + "\";"));
