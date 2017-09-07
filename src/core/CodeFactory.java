@@ -116,7 +116,7 @@ public class CodeFactory {
             // 默认主键
             sb.append(StringUtils.formatSingleLine(3, "+ " + tableName + "._ID + \" INTEGER PRIMARY KEY AUTOINCREMENT,\""));
         } else {
-            sb.append(StringUtils.formatSingleLine(3, "+ " + tableName + "._ID + \" INTEGER AUTOINCREMENT,\""));
+            sb.append(StringUtils.formatSingleLine(3, "+ " + tableName + "._ID + \" INTEGER,\""));
         }
 
         for (PsiField field : fields) {

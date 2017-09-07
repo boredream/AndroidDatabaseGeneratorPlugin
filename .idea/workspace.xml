@@ -2,12 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a424731c-a5f1-401e-9f28-d783a2534c38" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/entity/GenerateInfo.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/DatabaseGenerateAction.java" afterPath="$PROJECT_DIR$/src/DatabaseGenerateAction.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/core/CodeFactory.java" afterPath="$PROJECT_DIR$/src/core/CodeFactory.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/core/DatabaseGenerator.java" afterPath="$PROJECT_DIR$/src/core/DatabaseGenerator.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ui/ColumnDialog.java" afterPath="$PROJECT_DIR$/src/ui/ColumnDialog.java" />
     </list>
     <ignored path="AndroidDatabaseGeneratorPlugin.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -39,11 +35,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DatabaseGenerateAction.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="DatabaseGenerateAction.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/DatabaseGenerateAction.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="133">
-              <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+            <state relative-caret-position="304">
+              <caret line="30" column="5" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
               <folding />
             </state>
           </provider>
@@ -88,11 +84,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="CodeFactory.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="CodeFactory.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/core/CodeFactory.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="200">
-              <caret line="107" column="108" selection-start-line="107" selection-start-column="108" selection-end-line="107" selection-end-column="108" />
+            <state relative-caret-position="230">
+              <caret line="113" column="69" selection-start-line="113" selection-start-column="69" selection-end-line="113" selection-end-column="69" />
               <folding />
             </state>
           </provider>
@@ -141,8 +137,8 @@
         <option value="$PROJECT_DIR$/src/entity/GenerateInfo.java" />
         <option value="$PROJECT_DIR$/src/ui/ColumnDialog.java" />
         <option value="$PROJECT_DIR$/src/core/DatabaseGenerator.java" />
-        <option value="$PROJECT_DIR$/src/core/CodeFactory.java" />
         <option value="$PROJECT_DIR$/src/DatabaseGenerateAction.java" />
+        <option value="$PROJECT_DIR$/src/core/CodeFactory.java" />
       </list>
     </option>
   </component>
@@ -742,7 +738,14 @@
       <option name="project" value="LOCAL" />
       <updated>1504753654289</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="gen code by gui">
+      <created>1504755968051</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1504755968051</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TodoView">
@@ -831,7 +834,8 @@
     <MESSAGE value="dialog" />
     <MESSAGE value="select all" />
     <MESSAGE value="primary key ui" />
-    <option name="LAST_COMMIT_MESSAGE" value="primary key ui" />
+    <MESSAGE value="gen code by gui" />
+    <option name="LAST_COMMIT_MESSAGE" value="gen code by gui" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1239,14 +1243,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/core/CodeFactory.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
-          <caret line="107" column="108" selection-start-line="107" selection-start-column="108" selection-end-line="107" selection-end-column="108" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/core/DatabaseGenerator.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
@@ -1257,8 +1253,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/DatabaseGenerateAction.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="133">
-          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+        <state relative-caret-position="304">
+          <caret line="30" column="5" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/core/CodeFactory.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="230">
+          <caret line="113" column="69" selection-start-line="113" selection-start-column="69" selection-end-line="113" selection-end-column="69" />
           <folding />
         </state>
       </provider>
