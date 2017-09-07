@@ -188,7 +188,7 @@ public class CodeFactory {
     /**
      * 生成Dao类，包含增删改查基础方法
      */
-    public static String genDaoCode(PsiClass clazz, VirtualFile dir) {
+    public static String genDaoCode(PsiClass clazz, ArrayList<PsiField> fields, PsiField priKeyField, VirtualFile dir) {
         String daoClassName = clazz.getName() + "Dao";
 
         StringBuilder sb = new StringBuilder();
@@ -222,11 +222,33 @@ public class CodeFactory {
         sb.append(StringUtils.formatSingleLine(2, "helper = DatabaseHelper.getInstance();"));
         sb.append(StringUtils.formatSingleLine(1, "}"));
         sb.append("\n");
+        genDaoAddMethod(clazz, fields, sb); // add data
+        sb.append("\n");
+        genDaoAddListMethod(clazz, fields, sb); // add data list
+        sb.append("\n");
+        genDaoGetListMethod(clazz, fields, sb); // get data list
+        sb.append("\n");
+        genDaoDeleteListMethod(clazz, sb); // delete data list
+        sb.append("\n");
+        // 以上是基本方法，如果包含主键，则新建用主键"修改"、"获取"、"删除"几个方法
+        if(priKeyField != null) {
+            genUpdateMethod(clazz, fields, priKeyField, sb); // update data
+            sb.append("\n");
+            genDaoGetListByKeyMethod(clazz, fields, priKeyField, sb); // get data list by key
+            sb.append("\n");
+            genDaoDeleteByKeyMethod(clazz, priKeyField, sb); // delete data by key
+        }
+        sb.append(StringUtils.formatSingleLine(0, "}"));
+
+        return sb.toString();
+    }
+
+    private static void genDaoAddMethod(PsiClass clazz, ArrayList<PsiField> fields, StringBuilder sb) {
         sb.append(StringUtils.formatSingleLine(1, "public void add" + clazz.getName() + "(" + clazz.getName() + " data) {"));
         sb.append(StringUtils.formatSingleLine(2, "SQLiteDatabase db = helper.getWritableDatabase();"));
         sb.append("\n");
         sb.append(StringUtils.formatSingleLine(2, "ContentValues value = new ContentValues();"));
-        for (PsiField field : clazz.getFields()) {
+        for (PsiField field : fields) {
             String text = String.format("value.put(DataContract.%s.%s, %s);",
                     clazz.getName(), getColumnString(field), genDataGetStr(field));
             sb.append(StringUtils.formatSingleLine(2, text));
@@ -234,7 +256,9 @@ public class CodeFactory {
         sb.append("\n");
         sb.append(StringUtils.formatSingleLine(2, "db.insert(DataContract." + clazz.getName() + ".TABLE_NAME, null, value);"));
         sb.append(StringUtils.formatSingleLine(1, "}"));
-        sb.append("\n");
+    }
+
+    private static void genDaoAddListMethod(PsiClass clazz, ArrayList<PsiField> fields, StringBuilder sb) {
         sb.append(StringUtils.formatSingleLine(1, "public void add" + clazz.getName() + "List(ArrayList<" + clazz.getName() + "> datas) {"));
         sb.append(StringUtils.formatSingleLine(2, "SQLiteDatabase db = helper.getWritableDatabase();"));
         sb.append(StringUtils.formatSingleLine(2, "db.beginTransaction();"));
@@ -248,8 +272,8 @@ public class CodeFactory {
         sb.append("\n");
         sb.append(StringUtils.formatSingleLine(2, "// 事务批处理"));
         sb.append(StringUtils.formatSingleLine(2, "for (" + clazz.getName() + " data : datas) {"));
-        for (int i = 0; i < clazz.getFields().length; i++) {
-            PsiField field = clazz.getFields()[i];
+        for (int i = 0; i < fields.size(); i++) {
+            PsiField field = fields.get(i);
             String bindMethod = "bindString";
             switch (parseDbType(field)) {
                 case "INTEGER":
@@ -268,7 +292,9 @@ public class CodeFactory {
         sb.append(StringUtils.formatSingleLine(2, "db.setTransactionSuccessful();"));
         sb.append(StringUtils.formatSingleLine(2, "db.endTransaction();"));
         sb.append(StringUtils.formatSingleLine(1, "}"));
-        sb.append("\n");
+    }
+
+    private static void genDaoGetListMethod(PsiClass clazz, ArrayList<PsiField> fields, StringBuilder sb) {
         sb.append(StringUtils.formatSingleLine(1, "public ArrayList<" + clazz.getName() + "> get" + clazz.getName() + "List() {"));
         sb.append(StringUtils.formatSingleLine(2, "SQLiteDatabase db = helper.getReadableDatabase();"));
         sb.append(StringUtils.formatSingleLine(2, "ArrayList<" + clazz.getName() + "> datas = new ArrayList<>();"));
@@ -284,7 +310,7 @@ public class CodeFactory {
         sb.append(StringUtils.formatSingleLine(3, "if (cursor != null && cursor.moveToFirst()) {"));
         sb.append(StringUtils.formatSingleLine(4, "do {"));
         sb.append(StringUtils.formatSingleLine(5, "" + clazz.getName() + " data = new " + clazz.getName() + "();"));
-        for (PsiField field : clazz.getFields()) {
+        for (PsiField field : fields) {
             sb.append(StringUtils.formatSingleLine(5, genSetDataStr(clazz, field)));
         }
         sb.append(StringUtils.formatSingleLine(5, "datas.add(data);"));
@@ -295,15 +321,76 @@ public class CodeFactory {
         sb.append(StringUtils.formatSingleLine(2, "}"));
         sb.append(StringUtils.formatSingleLine(2, "return datas;"));
         sb.append(StringUtils.formatSingleLine(1, "}"));
-        sb.append("\n");
+    }
+
+    private static void genDaoDeleteListMethod(PsiClass clazz, StringBuilder sb) {
         sb.append(StringUtils.formatSingleLine(1, "public void delete" + clazz.getName() + "List() {"));
         sb.append(StringUtils.formatSingleLine(2, "SQLiteDatabase db = helper.getWritableDatabase();"));
         sb.append(StringUtils.formatSingleLine(2, "db.delete(DataContract." + clazz.getName() + ".TABLE_NAME, null, null);"));
         sb.append(StringUtils.formatSingleLine(1, "}"));
-        sb.append("\n");
-        sb.append(StringUtils.formatSingleLine(0, "}"));
+    }
 
-        return sb.toString();
+    private static void genUpdateMethod(PsiClass clazz, ArrayList<PsiField> fields, PsiField priKeyField, StringBuilder sb) {
+        sb.append(StringUtils.formatSingleLine(1, "public void update" + clazz.getName() + "(" + clazz.getName() + " data) {"));
+        sb.append(StringUtils.formatSingleLine(2, "SQLiteDatabase db = helper.getWritableDatabase();"));
+        sb.append("\n");
+        sb.append(StringUtils.formatSingleLine(2, "ContentValues value = new ContentValues();"));
+        for (PsiField field : fields) {
+            String text = String.format("value.put(DataContract.%s.%s, %s);",
+                    clazz.getName(), getColumnString(field), genDataGetStr(field));
+            sb.append(StringUtils.formatSingleLine(2, text));
+        }
+        sb.append("\n");
+        sb.append(StringUtils.formatSingleLine(2, "db.update(DataContract." + clazz.getName() + ".TABLE_NAME,"));
+        sb.append(StringUtils.formatSingleLine(4, "value,"));
+        sb.append(StringUtils.formatSingleLine(4, "DataContract." + clazz.getName() + "." + getColumnString(priKeyField) + " + \"=?\","));
+        if(priKeyField.getType().getPresentableText().equals("String")) {
+            sb.append(StringUtils.formatSingleLine(4, "new String[]{ " + genDataGetStr(priKeyField) + " });"));
+        } else {
+            sb.append(StringUtils.formatSingleLine(4, "new String[]{ String.valueOf(" + genDataGetStr(priKeyField) + ") });"));
+        }
+        sb.append(StringUtils.formatSingleLine(1, "}"));
+    }
+
+    private static void genDaoGetListByKeyMethod(PsiClass clazz, ArrayList<PsiField> fields, PsiField priKeyField, StringBuilder sb) {
+        sb.append(StringUtils.formatSingleLine(1, "public " + clazz.getName() + " get" + clazz.getName() + "(String primaryKey) {"));
+        sb.append(StringUtils.formatSingleLine(2, "if(primaryKey == null) {"));
+        sb.append(StringUtils.formatSingleLine(3, "return null;"));
+        sb.append(StringUtils.formatSingleLine(2, "}"));
+        sb.append("\n");
+        sb.append(StringUtils.formatSingleLine(2, "SQLiteDatabase db = helper.getReadableDatabase();"));
+        sb.append(StringUtils.formatSingleLine(2, clazz.getName() + " data = null;"));
+        sb.append(StringUtils.formatSingleLine(2, "Cursor cursor = null;"));
+        sb.append(StringUtils.formatSingleLine(2, "try {"));
+        sb.append(StringUtils.formatSingleLine(3, "cursor = db.query(DataContract." + clazz.getName() + ".TABLE_NAME,"));
+        sb.append(StringUtils.formatSingleLine(5, "null,"));
+        sb.append(StringUtils.formatSingleLine(5, "DataContract." + clazz.getName() + "." + getColumnString(priKeyField) + " + \"=?\","));
+        sb.append(StringUtils.formatSingleLine(5, "new String[]{ primaryKey },"));
+        sb.append(StringUtils.formatSingleLine(5, "null,"));
+        sb.append(StringUtils.formatSingleLine(5, "null,"));
+        sb.append(StringUtils.formatSingleLine(5, "null);"));
+        sb.append(StringUtils.formatSingleLine(3, "if (cursor != null && cursor.moveToFirst()) {"));
+        sb.append(StringUtils.formatSingleLine(4, "data = new " + clazz.getName() + "();"));
+        for (PsiField field : fields) {
+            sb.append(StringUtils.formatSingleLine(4, genSetDataStr(clazz, field)));
+        }
+        sb.append(StringUtils.formatSingleLine(3, "}"));
+        sb.append(StringUtils.formatSingleLine(2, "} finally {"));
+        sb.append(StringUtils.formatSingleLine(3, "if (cursor != null) cursor.close();"));
+        sb.append(StringUtils.formatSingleLine(2, "}"));
+        sb.append(StringUtils.formatSingleLine(2, "return data;"));
+        sb.append(StringUtils.formatSingleLine(1, "}"));
+    }
+
+    private static void genDaoDeleteByKeyMethod(PsiClass clazz, PsiField priKeyField, StringBuilder sb) {
+        sb.append(StringUtils.formatSingleLine(1, "public void delete" + clazz.getName() + "(String primaryKey) {"));
+        sb.append(StringUtils.formatSingleLine(2, "if(primaryKey == null) {"));
+        sb.append(StringUtils.formatSingleLine(3, "return;"));
+        sb.append(StringUtils.formatSingleLine(2, "}"));
+        sb.append("\n");
+        sb.append(StringUtils.formatSingleLine(2, "SQLiteDatabase db = helper.getWritableDatabase();"));
+        sb.append(StringUtils.formatSingleLine(2, "db.delete(DataContract." + clazz.getName() + ".TABLE_NAME, DataContract." + clazz.getName() + "." + getColumnString(priKeyField) + " + \"=\" + primaryKey" + ", null);"));
+        sb.append(StringUtils.formatSingleLine(1, "}"));
     }
 
     private static String getColumnString(PsiField field) {

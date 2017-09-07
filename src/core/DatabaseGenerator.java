@@ -35,9 +35,8 @@ public class DatabaseGenerator {
         // 数据类对应的Columns字段都统一的存在DataContract类中
         genColumnFile(clazz, fields, project, dbDir);
 
-        // TODO: 2017/9/7
         // 为每个数据类创建一个Dao类，包含基本的CRUD方法
-        genDaoCode(clazz, project, dbDir);
+        genDaoCode(clazz, fields, priKeyField, project, dbDir);
     }
 
     private static void genHelperFile(PsiClass clazz, ArrayList<PsiField> fields, PsiField priKeyField,
@@ -90,11 +89,12 @@ public class DatabaseGenerator {
         fileClass.add(beanColumnsClass.getInnerClasses()[0]);
     }
 
-    private static void genDaoCode(PsiClass clazz, Project project, VirtualFile dbDir) {
+    private static void genDaoCode(PsiClass clazz, ArrayList<PsiField> fields, PsiField priKeyField,
+                                   Project project, VirtualFile dbDir) {
         String name = clazz.getName() + "Dao.java";
         // 使用代码字符串创建个类
         PsiFile initFile = PsiFileFactory.getInstance(project).createFileFromText(
-                name, JavaFileType.INSTANCE, CodeFactory.genDaoCode(clazz, dbDir));
+                name, JavaFileType.INSTANCE, CodeFactory.genDaoCode(clazz, fields, priKeyField, dbDir));
 
         // 加到db目录下
         PsiManager.getInstance(project).findDirectory(dbDir).add(initFile);
