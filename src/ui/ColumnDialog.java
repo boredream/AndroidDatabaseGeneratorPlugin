@@ -2,15 +2,10 @@ package ui;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
-import com.sun.deploy.panel.RadioPropertyGroup;
 import utils.UiUtils;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class ColumnDialog extends JDialog {

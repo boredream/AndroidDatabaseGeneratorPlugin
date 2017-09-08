@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>com.boredream.plugin.dbgen</id>
   <name>Android Database Generator</name>
-  <version>1.0</version>
+  <version>1.1</version>
   <vendor email="48262906@qq.com" url="https://github.com/boredream">BoreDream</vendor>
 
   <description><![CDATA[
@@ -9,6 +9,7 @@
     ]]></description>
 
   <change-notes><![CDATA[
+      1.1 add ui, you can choose columns and primary key.
       1.0 init
     ]]>
   </change-notes>
